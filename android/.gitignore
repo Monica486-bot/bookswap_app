@@ -1,0 +1,140 @@
+# ========================================
+# Flutter & Dart
+# ========================================
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.generated/
+generated_plugin_registrant.dart
+
+# Lock file (consider committing for consistency in team projects)
+# pubspec.lock
+
+# ========================================
+# Android
+# ========================================
+/android/.gradle/
+/android/captures/
+/android/gradlew
+/android/gradlew.bat
+/android/local.properties
+/android/key.properties
+/android/app/key.jks
+/android/app/*.keystore
+/android/app/*.jks
+/android/app/debug.keystore
+/android/app/release/
+/android/app/release/*.apk
+/android/app/release/*.aab
+/android/app/release/output-metadata.json
+/android/.cxx/
+/android/app/.cxx/
+
+# ========================================
+# iOS
+# ========================================
+/ios/.generated/
+/ios/Flutter/flutter_export_environment.sh
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/.symlinks/
+/ios/Pods/
+/ios/Podfile.lock
+/ios/Runner.xcworkspace/
+/ios/build/
+/ios/DerivedData/
+
+# ========================================
+# Firebase & Configuration Files
+# (CRITICAL: Never commit these!)
+# ========================================
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+.env
+.env.*
+*.env
+
+# ========================================
+# IDE & Editor Files
+# ========================================
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# Android Studio
+*.apk
+*.aar
+*.ap_
+*.aab
+*.jar
+*.class
+*.dex
+*.zip
+
+# Xcode
+*.xcworkspace/
+!default.xcworkspace/contents.xcworkspacedata
+*.xcodeproj/
+!default.xcodeproj/project.pbxproj
+
+# ========================================
+# System & OS Files
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+[Tt]humbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Windows
+[Tt]humbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ========================================
+# Keystore & Signing Files
+# ========================================
+key.properties
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.key
+
+# ========================================
+# Logs & Temporary Files
+# ========================================
+*.log
+*.tmp
+*.temp
+flutter_*.log
+dart_*.log
+
+# ========================================
+# Web
+# ========================================
+web/asset_manifest.json
+web/flutter_service_worker.js
+web/.last_build_id
+
+# ========================================
+# Miscellaneous
+# ========================================
+.macos/
+/Target/
+.sass-cache/
+/Icon?
