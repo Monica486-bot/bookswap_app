@@ -5,8 +5,8 @@ import '../models/swap_model.dart';
 class SwapProvider with ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
 
-  List<SwapModel> _sentSwaps = [];
-  List<SwapModel> _receivedSwaps = [];
+  final List<SwapModel> _sentSwaps = [];
+  final List<SwapModel> _receivedSwaps = [];
   bool _isLoading = false;
   String? _error;
 

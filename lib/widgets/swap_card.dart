@@ -9,12 +9,12 @@ class SwapCard extends StatelessWidget {
   final VoidCallback? onReject;
 
   const SwapCard({
-    Key? key,
+    super.key,
     required this.swap,
     this.showActions = false,
     this.onAccept,
     this.onReject,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../models/book_model.dart';
+import 'dart:io'; // Add this import for File class
 
 class BookProvider with ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
   final StorageService _storageService = StorageService();
 
-  List<BookModel> _allBooks = [];
-  List<BookModel> _userBooks = [];
+  final List<BookModel> _allBooks = [];
+  final List<BookModel> _userBooks = [];
   bool _isLoading = false;
   String? _error;
 

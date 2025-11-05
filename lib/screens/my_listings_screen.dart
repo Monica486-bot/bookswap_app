@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../providers/user_auth_provider.dart'; // Updated import
 import '../providers/book_provider.dart';
 import '../widgets/book_card.dart';
 import 'add_book_screen.dart';
 
 class MyListingsScreen extends StatelessWidget {
-  const MyListingsScreen({Key? key}) : super(key: key);
+  const MyListingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<UserAuthProvider>(context); // Updated
     final bookProvider = Provider.of<BookProvider>(context);
 
     return Scaffold(

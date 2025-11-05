@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Add this import
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 
-// Providers
-import 'providers/auth_provider.dart';
+import 'providers/user_auth_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/swap_provider.dart';
 import 'providers/chat_provider.dart';
 
-// Screens
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/verify_email_screen.dart';
@@ -18,20 +17,19 @@ import 'screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with options
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const BookSwapApp());
 }
 
 class BookSwapApp extends StatelessWidget {
-  const BookSwapApp({Key? key}) : super(key: key);
+  const BookSwapApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UserAuthProvider()),
         ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => SwapProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
@@ -86,13 +84,13 @@ class BookSwapApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({Key? key}) : super(key: key);
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<UserAuthProvider>(context);
 
-    return StreamBuilder(
+    return StreamBuilder<User?>(
       stream: authProvider.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -100,17 +98,13 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          // User is logged in
           final user = snapshot.data;
           if (user != null && user.emailVerified) {
-            // Email verified - go to home screen
             return const HomeScreen();
           } else {
-            // Email not verified - go to verification screen
             return const VerifyEmailScreen();
           }
         } else {
-          // User is not logged in - go to login screen
           return const LoginScreen();
         }
       },
@@ -119,7 +113,7 @@ class AuthWrapper extends StatelessWidget {
 }
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

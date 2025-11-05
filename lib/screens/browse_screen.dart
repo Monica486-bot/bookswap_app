@@ -4,7 +4,7 @@ import '../providers/book_provider.dart';
 import '../widgets/book_card.dart';
 
 class BrowseScreen extends StatelessWidget {
-  const BrowseScreen({Key? key}) : super(key: key);
+  const BrowseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,6 @@ class BrowseScreen extends StatelessWidget {
                 book: book,
                 showSwapButton: true,
                 onSwap: () {
-                  // TODO: Implement swap functionality
                   _showSwapDialog(context, book);
                 },
               );
@@ -71,7 +70,6 @@ class BrowseScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement swap initiation
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

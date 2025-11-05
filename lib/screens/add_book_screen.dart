@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../providers/auth_provider.dart';
+import '../providers/user_auth_provider.dart'; // Updated import
 import '../providers/book_provider.dart';
 import '../models/book_model.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 
 class AddBookScreen extends StatefulWidget {
-  const AddBookScreen({Key? key}) : super(key: key);
+  const AddBookScreen({super.key});
 
   @override
   State<AddBookScreen> createState() => _AddBookScreenState();
@@ -49,7 +49,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<UserAuthProvider>(
+      context,
+      listen: false,
+    ); // Updated
     final bookProvider = Provider.of<BookProvider>(context, listen: false);
 
     if (authProvider.currentUser == null) {
@@ -177,7 +180,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
               // Condition Dropdown
               DropdownButtonFormField<String>(
-                value: _selectedCondition,
+                initialValue: _selectedCondition,
                 decoration: const InputDecoration(
                   labelText: 'Condition',
                   border: OutlineInputBorder(),

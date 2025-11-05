@@ -6,7 +6,7 @@ import '../models/message_model.dart';
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService();
 
-  List<ChatModel> _userChats = [];
+  final List<ChatModel> _userChats = [];
   List<MessageModel> _currentChatMessages = [];
   bool _isLoading = false;
   String? _error;

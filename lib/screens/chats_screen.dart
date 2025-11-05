@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../providers/user_auth_provider.dart'; // Updated import
 import '../providers/chat_provider.dart';
 
 class ChatsScreen extends StatelessWidget {
-  const ChatsScreen({Key? key}) : super(key: key);
+  const ChatsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<UserAuthProvider>(context); // Updated
     final chatProvider = Provider.of<ChatProvider>(context);
 
     return Scaffold(
@@ -73,7 +73,7 @@ class ChatsScreen extends StatelessWidget {
                     child: const Icon(Icons.person, color: Colors.green),
                   ),
                   title: Text(
-                    'Chat about ${chat.swapId}', // In real app, you'd show other user's name
+                    'Chat about ${chat.swapId}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
@@ -91,11 +91,9 @@ class ChatsScreen extends StatelessWidget {
                           color: Colors.grey,
                         ),
                       ),
-                      // You could add unread message indicator here
                     ],
                   ),
                   onTap: () {
-                    // TODO: Navigate to chat detail screen
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Chat feature - Coming soon!'),

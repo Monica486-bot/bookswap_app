@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 
-class AuthProvider with ChangeNotifier {
+class UserAuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -12,8 +13,9 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Initialize auth state
-  AuthProvider() {
+  Stream<User?> get authStateChanges => _authService.authStateChanges;
+
+  UserAuthProvider() {
     _initializeAuth();
   }
 
@@ -54,7 +56,10 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> signIn({required String email, required String password}) async {
+  Future<bool> signIn({
+    required String email,
+    required String password,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();

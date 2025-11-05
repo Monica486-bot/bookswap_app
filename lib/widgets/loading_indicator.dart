@@ -5,8 +5,7 @@ class LoadingIndicator extends StatelessWidget {
   final Color? color;
   final double? size;
 
-  const LoadingIndicator({Key? key, this.message, this.color, this.size})
-    : super(key: key);
+  const LoadingIndicator({super.key, this.message, this.color, this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +43,11 @@ class LoadingOverlay extends StatelessWidget {
   final String? message;
 
   const LoadingOverlay({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.child,
     this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -96,12 +95,12 @@ class ButtonLoadingIndicator extends StatelessWidget {
   final Color? backgroundColor;
 
   const ButtonLoadingIndicator({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.text,
     this.onPressed,
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -10,7 +10,7 @@ import '../utils/validators.dart';
 class EditBookScreen extends StatefulWidget {
   final BookModel book;
 
-  const EditBookScreen({Key? key, required this.book}) : super(key: key);
+  const EditBookScreen({super.key, required this.book});
 
   @override
   State<EditBookScreen> createState() => _EditBookScreenState();
@@ -266,7 +266,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
                     // Condition Dropdown
                     DropdownButtonFormField<String>(
-                      value: _selectedCondition,
+                      initialValue: _selectedCondition,
                       decoration: const InputDecoration(
                         labelText: 'Condition',
                         border: OutlineInputBorder(),

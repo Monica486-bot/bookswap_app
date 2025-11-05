@@ -7,11 +7,11 @@ class BookCard extends StatelessWidget {
   final VoidCallback? onSwap;
 
   const BookCard({
-    Key? key,
+    super.key,
     required this.book,
     this.showSwapButton = false,
     this.onSwap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
