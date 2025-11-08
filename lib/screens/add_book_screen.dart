@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../providers/user_auth_provider.dart'; // Updated import
+import 'dart:typed_data';
+import '../providers/user_auth_provider.dart';
 import '../providers/book_provider.dart';
 import '../models/book_model.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
+import '../widgets/cross_platform_image.dart';
 
 class AddBookScreen extends StatefulWidget {
   const AddBookScreen({super.key});
@@ -21,7 +24,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final _authorController = TextEditingController();
 
   String _selectedCondition = AppConstants.bookConditions[0];
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _webImage;
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
@@ -36,23 +40,30 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
       if (image != null) {
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImage = image;
         });
+        
+        // For web, also load bytes for preview
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+          });
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
     }
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<UserAuthProvider>(
-      context,
-      listen: false,
-    ); // Updated
+    final authProvider = Provider.of<UserAuthProvider>(context, listen: false);
     final bookProvider = Provider.of<BookProvider>(context, listen: false);
 
     if (authProvider.currentUser == null) {
@@ -81,24 +92,24 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
       final success = await bookProvider.addBook(book, _selectedImage);
 
-      if (success && context.mounted) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Book added successfully!')),
         );
         Navigator.pop(context);
-      } else if (context.mounted) {
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to add book: ${bookProvider.error}')),
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     } finally {
-      if (context.mounted) {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -111,7 +122,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Book'),
-        backgroundColor: Colors.green[800],
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -128,14 +139,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   width: 150.0,
                   height: 200.0,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: AppColors.textLight),
                     borderRadius: BorderRadius.circular(12.0),
-                    color: Colors.grey[100],
+                    color: AppColors.surface,
                   ),
                   child: _selectedImage != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12.0),
-                          child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                          child: CrossPlatformImage(
+                            imageSource: kIsWeb ? _webImage : File(_selectedImage!.path),
+                            fit: BoxFit.cover,
+                          ),
                         )
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -143,12 +157,12 @@ class _AddBookScreenState extends State<AddBookScreen> {
                             Icon(
                               Icons.add_photo_alternate,
                               size: 40.0,
-                              color: Colors.grey[400],
+                              color: AppColors.textLight,
                             ),
                             const SizedBox(height: 8.0),
                             Text(
                               'Add Cover',
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: TextStyle(color: AppColors.textLight),
                             ),
                           ],
                         ),
@@ -162,6 +176,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Book Title',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
                 ),
                 validator: Validators.validateBookTitle,
               ),
@@ -173,6 +188,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Author',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
                 ),
                 validator: Validators.validateAuthor,
               ),
@@ -184,6 +200,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Condition',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.flag),
                 ),
                 items: AppConstants.bookConditions.map((String condition) {
                   return DropdownMenuItem<String>(
@@ -206,7 +223,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[800],
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),

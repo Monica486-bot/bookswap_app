@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_auth_provider.dart'; // Updated import
-import '../providers/chat_provider.dart';
+import '../providers/user_auth_provider.dart';
+import '../services/firestore_service.dart';
+import 'chat_screen.dart';
+import '../utils/constants.dart';
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<UserAuthProvider>(context); // Updated
-    final chatProvider = Provider.of<ChatProvider>(context);
+    final authProvider = Provider.of<UserAuthProvider>(context);
+    final firestoreService = FirestoreService();
+    final currentUserId = authProvider.currentUser?.uid;
+
+    if (currentUserId == null) {
+      return const Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: SizedBox(),
+        ),
+        body: Center(
+          child: Text('Please log in to view chats'),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
-        backgroundColor: Colors.green[800],
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: StreamBuilder(
-        stream: chatProvider.userChatsStream(
-          authProvider.currentUser?.uid ?? '',
-        ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: firestoreService.getUserChatsStream(currentUserId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -36,24 +49,38 @@ class ChatsScreen extends StatelessWidget {
           final chats = snapshot.data ?? [];
 
           if (chats.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 80.0,
-                    color: Colors.grey,
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      Icons.chat_bubble_outline,
+                      size: 80.0,
+                      color: AppColors.textLight,
+                    ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 24.0),
                   Text(
                     'No chats yet',
-                    style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  SizedBox(height: 8.0),
+                  const SizedBox(height: 8.0),
                   Text(
                     'Start a swap to begin chatting',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: AppColors.textLight,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -65,46 +92,120 @@ class ChatsScreen extends StatelessWidget {
             itemCount: chats.length,
             itemBuilder: (context, index) {
               final chat = chats[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12.0),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.green[100],
-                    child: const Icon(Icons.person, color: Colors.green),
-                  ),
-                  title: Text(
-                    'Chat about ${chat.swapId}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    chat.lastMessage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _formatTime(chat.lastMessageTime),
-                        style: const TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.grey,
-                        ),
+
+              return ChatListItem(
+                chat: chat,
+                currentUserId: currentUserId,
+                onTap: () {
+                  final participants = List<String>.from(chat['participants']);
+                  final otherUserId = participants.firstWhere(
+                    (id) => id != currentUserId,
+                    orElse: () => '',
+                  );
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(
+                        chatId: chat['id'],
+                        otherUserName: 'Chat Partner',
+                        swapId: chat['swapId'],
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Chat feature - Coming soon!'),
-                      ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class ChatListItem extends StatelessWidget {
+  final Map<String, dynamic> chat;
+  final String currentUserId;
+  final VoidCallback onTap;
+
+  const ChatListItem({
+    super.key,
+    required this.chat,
+    required this.currentUserId,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16.0),
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.secondary, AppColors.accent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: const Icon(Icons.chat_bubble, color: Colors.white),
+        ),
+        title: Text(
+          'Swap Chat #${chat['swapId'].substring(0, 8)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.text,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            chat['lastMessage'],
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.textLight,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _formatTime(chat['lastMessageTime']),
+                style: TextStyle(
+                  fontSize: 12.0,
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        onTap: onTap,
       ),
     );
   }

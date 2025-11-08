@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_auth_provider.dart'; // Updated import
+import 'package:firebase_auth/firebase_auth.dart';
+import '../providers/user_auth_provider.dart';
+import '../utils/constants.dart';
+import 'my_offers_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -12,7 +15,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Colors.green[800],
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -47,27 +50,83 @@ class SettingsScreen extends StatelessWidget {
                       authProvider.currentUser?.email ?? 'Not set',
                     ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.verified),
-                    title: const Text('Email Verified'),
-                    subtitle: Text(
-                      authProvider.currentUser?.emailVerified == true
-                          ? 'Yes'
-                          : 'No',
-                    ),
-                    trailing: authProvider.currentUser?.emailVerified == false
-                        ? TextButton(
-                            onPressed: () {
-                              authProvider.resendVerification();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Verification email sent!'),
-                                ),
-                              );
-                            },
-                            child: const Text('Resend'),
+                  StreamBuilder<User?>(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, snapshot) {
+                      final user = snapshot.data;
+                      final isVerified = user?.emailVerified ?? false;
+                      
+                      return ListTile(
+                        leading: const Icon(Icons.verified),
+                        title: const Text('Email Verified'),
+                        subtitle: Text(isVerified ? 'Yes' : 'No'),
+                        trailing: !isVerified
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  await authProvider.refreshAuthState();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Status refreshed!'),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: const Text('Refresh'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  authProvider.resendVerification();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Verification email sent!'),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Resend'),
+                              ),
+                            ],
                           )
                         : null,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+
+          // My Activity Section
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My Activity',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  ListTile(
+                    leading: const Icon(Icons.swap_horiz),
+                    title: const Text('My Offers'),
+                    subtitle: const Text('View your swap requests'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyOffersScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -126,10 +185,10 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16.0),
                   ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text(
+                    leading: Icon(Icons.logout, color: AppColors.error),
+                    title: Text(
                       'Sign Out',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                     ),
                     onTap: () {
                       showDialog(
@@ -153,9 +212,9 @@ class SettingsScreen extends StatelessWidget {
                                   '/login',
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 'Sign Out',
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: AppColors.error),
                               ),
                             ),
                           ],

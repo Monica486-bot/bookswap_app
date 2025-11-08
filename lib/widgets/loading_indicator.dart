@@ -111,12 +111,12 @@ class ButtonLoadingIndicator extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       child: isLoading
-          ? SizedBox(
+          ? const SizedBox(
               height: 20.0,
               width: 20.0,
               child: CircularProgressIndicator(
                 strokeWidth: 2.0,
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             )
           : Text(text),

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/user_auth_provider.dart'; // Updated import
 import 'browse_screen.dart';
 import 'my_listings_screen.dart';
 import 'chats_screen.dart';
@@ -32,8 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<UserAuthProvider>(context); // Updated
-
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(

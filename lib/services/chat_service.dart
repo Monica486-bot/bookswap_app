@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/chat_model.dart';
-import '../models/message_model.dart'; // This should now work correctly
+import '../models/message_model.dart';
 import '../utils/constants.dart';
 
 class ChatService {
@@ -133,7 +134,9 @@ class ChatService {
         await doc.reference.update({'read': true});
       }
     } catch (e) {
-      print('Error marking messages as read: $e');
+      if (kDebugMode) {
+        print('Error marking messages as read: $e');
+      }
     }
   }
 }

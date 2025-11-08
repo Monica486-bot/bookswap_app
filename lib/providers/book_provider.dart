@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../models/book_model.dart';
-import 'dart:io'; // Add this import for File class
 
 class BookProvider with ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
@@ -27,7 +26,7 @@ class BookProvider with ChangeNotifier {
       _firestoreService.getUserBooksStream(userId);
 
   // Add a new book
-  Future<bool> addBook(BookModel book, File? imageFile) async {
+  Future<bool> addBook(BookModel book, dynamic imageFile) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -55,7 +54,7 @@ class BookProvider with ChangeNotifier {
   }
 
   // Update a book
-  Future<bool> updateBook(BookModel book, File? imageFile) async {
+  Future<bool> updateBook(BookModel book, dynamic imageFile) async {
     _isLoading = true;
     _error = null;
     notifyListeners();

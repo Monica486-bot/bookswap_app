@@ -64,15 +64,6 @@ class AuthService {
         password: password,
       );
 
-      // Check if email is verified
-      if (!credential.user!.emailVerified) {
-        await signOut();
-        throw FirebaseAuthException(
-          code: 'email-not-verified',
-          message: 'Please verify your email before signing in.',
-        );
-      }
-
       // Get user data from Firestore
       DocumentSnapshot userDoc = await _firestore
           .collection(AppConstants.usersCollection)
@@ -117,9 +108,11 @@ class AuthService {
     }
   }
 
-  // Check if user is logged in and verified
-  Future<bool> isUserLoggedInAndVerified() async {
+  // Reload user to get latest verification status
+  Future<void> reloadUser() async {
     User? user = _auth.currentUser;
-    return user != null && user.emailVerified;
+    if (user != null) {
+      await user.reload();
+    }
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppConstants {
   static const String appName = 'BookSwap';
 
@@ -29,10 +31,29 @@ class AppConstants {
 }
 
 class AppColors {
-  static const primaryColor = 0xFF2E7D32;
-  static const secondaryColor = 0xFF4CAF50;
-  static const accentColor = 0xFF8BC34A;
-  static const backgroundColor = 0xFFF5F5F5;
-  static const textColor = 0xFF333333;
-  static const errorColor = 0xFFD32F2F;
+  // Dark color scheme - Deep Blue/Purple theme
+  static const int primaryColor = 0xFF1A237E;  // Deep Indigo
+  static const int secondaryColor = 0xFF283593; // Darker Blue
+  static const int accentColor = 0xFF5C6BC0;    // Medium Purple
+  static const int backgroundColor = 0xFFFFFFFF; // White Background
+  static const int surfaceColor = 0xFFF8F9FA;    // Light Gray Surface
+  static const int cardColor = 0xFFFFFFFF;       // White Card Color
+  static const int textColor = 0xFF212121;       // Dark Gray Text
+  static const int textLightColor = 0xFF757575;  // Medium Gray Text
+  static const int errorColor = 0xFF7986CB;      // Light Purple (Error)
+  static const int successColor = 0xFF9FA8DA;    // Lighter Purple (Success)
+  static const int warningColor = 0xFFB39DDB;    // Medium Purple (Warning)
+
+  // Helper methods
+  static Color get primary => const Color(primaryColor);
+  static Color get secondary => const Color(secondaryColor);
+  static Color get accent => const Color(accentColor);
+  static Color get background => const Color(backgroundColor);
+  static Color get surface => const Color(surfaceColor);
+  static Color get card => const Color(cardColor);
+  static Color get text => const Color(textColor);
+  static Color get textLight => const Color(textLightColor);
+  static Color get error => const Color(errorColor);
+  static Color get success => const Color(successColor);
+  static Color get warning => const Color(warningColor);
 }

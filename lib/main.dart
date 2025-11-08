@@ -13,6 +13,7 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/verify_email_screen.dart';
 import 'screens/home_screen.dart';
+import 'utils/constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,37 +37,85 @@ class BookSwapApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'BookSwap',
-        theme: ThemeData(
-          primarySwatch: Colors.green,
-          primaryColor: Colors.green[800],
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.green,
-            accentColor: Colors.green[600],
+        theme: ThemeData.light().copyWith(
+          primaryColor: AppColors.primary,
+          colorScheme: ColorScheme.light(
+            primary: AppColors.primary,
+            secondary: AppColors.secondary,
+            tertiary: AppColors.accent,
+            surface: AppColors.surface,
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: AppColors.text,
           ),
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: AppColors.background,
+          cardColor: AppColors.card,
           appBarTheme: AppBarTheme(
-            backgroundColor: Colors.green[800],
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
             centerTitle: true,
+            iconTheme: const IconThemeData(color: Colors.white),
+            titleTextStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
+              borderSide: BorderSide(color: AppColors.textLight),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
-              borderSide: BorderSide(color: Colors.green[800]!),
+              borderSide: BorderSide(color: AppColors.secondary, width: 2),
             ),
+            labelStyle: TextStyle(color: AppColors.textLight),
+            hintStyle: TextStyle(color: AppColors.textLight),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[800],
+              backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
               padding: const EdgeInsets.symmetric(vertical: 16.0),
+              elevation: 2,
+            ),
+          ),
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            backgroundColor: AppColors.accent,
+            foregroundColor: Colors.white,
+          ),
+          cardTheme: CardThemeData(
+            color: AppColors.card,
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+          ),
+          textTheme: TextTheme(
+            headlineMedium: TextStyle(
+              fontSize: 28.0,
+              fontWeight: FontWeight.bold,
+              color: AppColors.text,
+            ),
+            titleLarge: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+            ),
+            bodyLarge: TextStyle(
+              fontSize: 16.0,
+              color: AppColors.text,
+            ),
+            bodyMedium: TextStyle(
+              fontSize: 14.0,
+              color: AppColors.textLight,
             ),
           ),
         ),
@@ -83,9 +132,14 @@ class BookSwapApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<UserAuthProvider>(context);
@@ -97,15 +151,19 @@ class AuthWrapper extends StatelessWidget {
           return const SplashScreen();
         }
 
-        if (snapshot.hasData) {
-          final user = snapshot.data;
-          if (user != null && user.emailVerified) {
-            return const HomeScreen();
-          } else {
-            return const VerifyEmailScreen();
-          }
-        } else {
+        if (!snapshot.hasData) {
+          // No user is signed in
           return const LoginScreen();
+        }
+
+        final user = snapshot.data!;
+
+        if (!user.emailVerified) {
+          // User is signed in but email is not verified
+          return const VerifyEmailScreen();
+        } else {
+          // User is signed in AND email is verified
+          return const HomeScreen();
         }
       },
     );
@@ -118,21 +176,33 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[800],
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.book, size: 80.0, color: Colors.white),
+            const Icon(
+              Icons.book,
+              size: 80.0,
+              color: Colors.white,
+            ),
             const SizedBox(height: 20.0),
             Text(
               'BookSwap',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 10.0),
+            const Text(
+              'Swap textbooks with fellow students',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16.0,
               ),
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 30.0),
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),

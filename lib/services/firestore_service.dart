@@ -101,13 +101,12 @@ class FirestoreService {
         .collection(AppConstants.swapsCollection)
         .doc(swapId)
         .update({
-          'status': status,
-          'updatedAt': DateTime.now().millisecondsSinceEpoch,
-        });
+      'status': status,
+      'updatedAt': DateTime.now().millisecondsSinceEpoch,
+    });
 
     // If swap is accepted or rejected, update book status accordingly
     if (status == AppConstants.swapAccepted) {
-      // Get the swap to find the book ID
       DocumentSnapshot swapDoc = await _firestore
           .collection(AppConstants.swapsCollection)
           .doc(swapId)
@@ -120,7 +119,6 @@ class FirestoreService {
             .update({'status': AppConstants.bookSwapped});
       }
     } else if (status == AppConstants.swapRejected) {
-      // Get the swap to find the book ID
       DocumentSnapshot swapDoc = await _firestore
           .collection(AppConstants.swapsCollection)
           .doc(swapId)
@@ -133,5 +131,100 @@ class FirestoreService {
             .update({'status': AppConstants.bookAvailable});
       }
     }
+  }
+
+  // Chat Operations
+  Future<void> sendMessage({
+    required String chatId,
+    required String senderId,
+    required String senderName,
+    required String text,
+  }) async {
+    final messageData = {
+      'senderId': senderId,
+      'senderName': senderName,
+      'text': text,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'read': false,
+    };
+
+    await _firestore
+        .collection(AppConstants.chatsCollection)
+        .doc(chatId)
+        .collection(AppConstants.messagesCollection)
+        .add(messageData);
+
+    // Update chat last message
+    await _firestore
+        .collection(AppConstants.chatsCollection)
+        .doc(chatId)
+        .update({
+      'lastMessage': text,
+      'lastMessageTime': DateTime.now().millisecondsSinceEpoch,
+      'lastSenderId': senderId,
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> getChatMessagesStream(String chatId) {
+    return _firestore
+        .collection(AppConstants.chatsCollection)
+        .doc(chatId)
+        .collection(AppConstants.messagesCollection)
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {
+                    'id': doc.id,
+                    ...doc.data(),
+                    'timestamp':
+                        DateTime.fromMillisecondsSinceEpoch(doc['timestamp']),
+                  })
+              .toList(),
+        );
+  }
+
+  Stream<List<Map<String, dynamic>>> getUserChatsStream(String userId) {
+    return _firestore
+        .collection(AppConstants.chatsCollection)
+        .where('participants', arrayContains: userId)
+        .orderBy('lastMessageTime', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {
+                    'id': doc.id,
+                    ...doc.data(),
+                    'lastMessageTime': DateTime.fromMillisecondsSinceEpoch(
+                        doc['lastMessageTime']),
+                  })
+              .toList(),
+        );
+  }
+
+  Future<String> getOrCreateChat(
+      List<String> participants, String swapId) async {
+    // Check if chat already exists
+    final existingChat = await _firestore
+        .collection(AppConstants.chatsCollection)
+        .where('participants', isEqualTo: participants)
+        .where('swapId', isEqualTo: swapId)
+        .get();
+
+    if (existingChat.docs.isNotEmpty) {
+      return existingChat.docs.first.id;
+    }
+
+    // Create new chat
+    final chatDoc = _firestore.collection(AppConstants.chatsCollection).doc();
+    await chatDoc.set({
+      'participants': participants,
+      'swapId': swapId,
+      'lastMessage': 'Chat started',
+      'lastMessageTime': DateTime.now().millisecondsSinceEpoch,
+      'lastSenderId': participants.first,
+    });
+
+    return chatDoc.id;
   }
 }

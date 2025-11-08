@@ -1,13 +1,15 @@
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _imagePicker = ImagePicker();
 
-  // Pick image from gallery
-  Future<File?> pickImage() async {
+  // Pick image from gallery - returns XFile for cross-platform compatibility
+  Future<XFile?> pickImage() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -15,25 +17,41 @@ class StorageService {
         maxHeight: 1024,
         imageQuality: 80,
       );
-
-      if (image != null) {
-        return File(image.path);
-      }
-      return null;
+      return image;
     } catch (e) {
       throw Exception('Failed to pick image: $e');
     }
   }
 
-  // Upload image to Firebase Storage
-  Future<String> uploadBookImage(File imageFile, String userId) async {
+  // Upload image to Firebase Storage - cross-platform
+  Future<String> uploadBookImage(dynamic imageFile, String userId) async {
     try {
       // Create unique filename
       String fileName = 'book_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String path = 'book_images/$userId/$fileName';
 
-      // Upload to Firebase Storage
-      TaskSnapshot snapshot = await _storage.ref(path).putFile(imageFile);
+      TaskSnapshot snapshot;
+      
+      if (kIsWeb) {
+        // For web: use putData with Uint8List
+        if (imageFile is XFile) {
+          Uint8List bytes = await imageFile.readAsBytes();
+          snapshot = await _storage.ref(path).putData(bytes);
+        } else {
+          throw Exception('Invalid image file type for web');
+        }
+      } else {
+        // For mobile: use putFile with File
+        File file;
+        if (imageFile is XFile) {
+          file = File(imageFile.path);
+        } else if (imageFile is File) {
+          file = imageFile;
+        } else {
+          throw Exception('Invalid image file type for mobile');
+        }
+        snapshot = await _storage.ref(path).putFile(file);
+      }
 
       // Get download URL
       String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -46,17 +64,8 @@ class StorageService {
   // Delete image from Firebase Storage
   Future<void> deleteImage(String imageUrl) async {
     try {
-      // Extract path from URL
-      Uri uri = Uri.parse(imageUrl);
-      String path = uri.path;
-
-      // Remove the leading '/'
-      if (path.startsWith('/')) {
-        path = path.substring(1);
-      }
-
-      // Get reference and delete
-      Reference ref = _storage.ref(path);
+      // Extract storage path from Firebase Storage URL
+      Reference ref = _storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
       // Don't throw error for delete failures to avoid breaking flows
@@ -64,17 +73,41 @@ class StorageService {
         // Image already deleted or doesn't exist - that's fine
         return;
       }
-      print('Error deleting image: $e');
+      if (kDebugMode) {
+        print('Error deleting image: $e');
+      }
     }
   }
 
-  // Upload user profile image
-  Future<String> uploadProfileImage(File imageFile, String userId) async {
+  // Upload user profile image - cross-platform
+  Future<String> uploadProfileImage(dynamic imageFile, String userId) async {
     try {
       String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String path = 'profile_images/$userId/$fileName';
 
-      TaskSnapshot snapshot = await _storage.ref(path).putFile(imageFile);
+      TaskSnapshot snapshot;
+      
+      if (kIsWeb) {
+        // For web: use putData with Uint8List
+        if (imageFile is XFile) {
+          Uint8List bytes = await imageFile.readAsBytes();
+          snapshot = await _storage.ref(path).putData(bytes);
+        } else {
+          throw Exception('Invalid image file type for web');
+        }
+      } else {
+        // For mobile: use putFile with File
+        File file;
+        if (imageFile is XFile) {
+          file = File(imageFile.path);
+        } else if (imageFile is File) {
+          file = imageFile;
+        } else {
+          throw Exception('Invalid image file type for mobile');
+        }
+        snapshot = await _storage.ref(path).putFile(file);
+      }
+
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {

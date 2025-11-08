@@ -7,6 +7,7 @@ class SwapCard extends StatelessWidget {
   final bool showActions;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
+  final VoidCallback? onChat;
 
   const SwapCard({
     super.key,
@@ -14,6 +15,7 @@ class SwapCard extends StatelessWidget {
     this.showActions = false,
     this.onAccept,
     this.onReject,
+    this.onChat,
   });
 
   @override
@@ -49,9 +51,10 @@ class SwapCard extends StatelessWidget {
             ),
             const SizedBox(height: 4.0),
 
-            // Status
+            // Status and Chat Button Row
             Row(
               children: [
+                // Status Badge
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8.0,
@@ -70,11 +73,17 @@ class SwapCard extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 const Spacer(),
-                Text(
-                  _formatDate(swap.createdAt),
-                  style: TextStyle(fontSize: 12.0, color: Colors.grey[600]),
-                ),
+
+                // Chat button for accepted swaps
+                if (swap.status == AppConstants.swapAccepted && onChat != null)
+                  IconButton(
+                    onPressed: onChat,
+                    icon: const Icon(Icons.chat),
+                    color: AppColors.primary,
+                    tooltip: 'Open Chat',
+                  ),
               ],
             ),
 
@@ -99,7 +108,7 @@ class SwapCard extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: onAccept,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green[800],
+                          backgroundColor: AppColors.primary,
                         ),
                         child: const Text(
                           'Accept',
@@ -110,6 +119,16 @@ class SwapCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+            // Timestamp
+            const SizedBox(height: 8.0),
+            Text(
+              'Created: ${_formatDate(swap.createdAt)}',
+              style: TextStyle(
+                fontSize: 12.0,
+                color: Colors.grey[600],
+              ),
+            ),
           ],
         ),
       ),
@@ -132,6 +151,6 @@ class SwapCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

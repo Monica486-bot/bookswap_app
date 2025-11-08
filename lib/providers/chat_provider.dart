@@ -78,7 +78,9 @@ class ChatProvider with ChangeNotifier {
     try {
       await _chatService.markMessagesAsRead(chatId, userId);
     } catch (e) {
-      print('Error marking messages as read: $e');
+      if (kDebugMode) {
+        print('Error marking messages as read: $e');
+      }
     }
   }
 

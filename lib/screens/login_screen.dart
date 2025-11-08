@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_auth_provider.dart'; // Updated import
+import '../providers/user_auth_provider.dart';
 import '../utils/validators.dart';
+import '../utils/constants.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<UserAuthProvider>(context); // Updated
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -37,15 +38,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.green[800],
+                    color: AppColors.text,
                   ),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   'Sign in to continue swapping books',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textLight,
+                  ),
                 ),
                 const SizedBox(height: 48.0),
 
@@ -93,11 +94,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Error Message
                 if (authProvider.error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(color: AppColors.error),
+                    ),
                     child: Text(
                       authProvider.error!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
 
@@ -137,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[800],
+                      backgroundColor: AppColors.secondary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
@@ -179,11 +186,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Sign Up',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: AppColors.secondary,
                         ),
                       ),
                     ),

@@ -21,7 +21,16 @@ class UserAuthProvider with ChangeNotifier {
 
   Future<void> _initializeAuth() async {
     try {
-      _currentUser = await _authService.getCurrentUserData();
+      User? firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        // Reload user to get latest verification status
+        await firebaseUser.reload();
+        firebaseUser = FirebaseAuth.instance.currentUser;
+
+        if (firebaseUser!.emailVerified) {
+          _currentUser = await _authService.getCurrentUserData();
+        }
+      }
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
@@ -65,10 +74,31 @@ class UserAuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await _authService.signIn(
+      // Sign in the user
+      await _authService.signIn(
         email: email,
         password: password,
       );
+
+      // Get the current Firebase user and reload to get latest status
+      User? firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        await firebaseUser.reload();
+        firebaseUser = FirebaseAuth.instance.currentUser;
+
+        if (!firebaseUser!.emailVerified) {
+          _error = 'Please verify your email before signing in.';
+          await _authService.signOut();
+          _currentUser = null;
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        // Email is verified, get user data
+        _currentUser = await _authService.getCurrentUserData();
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -90,10 +120,34 @@ class UserAuthProvider with ChangeNotifier {
     await _authService.resendEmailVerification();
   }
 
+  // Check if user needs to verify email - with proper reload
+  Future<bool> checkEmailVerification() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Reload user to get latest email verification status
+        await user.reload();
+        user = FirebaseAuth.instance.currentUser;
+        return user?.emailVerified ?? false;
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking email verification: $e');
+      }
+      return false;
+    }
+  }
+
+  // Force refresh the auth state
+  Future<void> refreshAuthState() async {
+    await _initializeAuth();
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();
   }
 
-  bool get isLoggedIn => _currentUser != null;
+  bool get isLoggedIn => _currentUser != null && _currentUser!.emailVerified;
 }

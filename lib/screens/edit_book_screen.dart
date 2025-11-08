@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import '../providers/book_provider.dart';
 import '../models/book_model.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
+import '../widgets/cross_platform_image.dart';
 
 class EditBookScreen extends StatefulWidget {
   final BookModel book;
@@ -22,7 +25,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
   final _authorController = TextEditingController();
 
   String _selectedCondition = '';
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _webImage;
   bool _isLoading = false;
 
   @override
@@ -45,8 +49,16 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
       if (image != null) {
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImage = image;
         });
+        
+        // For web, also load bytes for preview
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+          });
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -157,7 +169,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Book'),
-        backgroundColor: Colors.green[800],
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -183,15 +195,15 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         width: 150.0,
                         height: 200.0,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(color: AppColors.textLight),
                           borderRadius: BorderRadius.circular(12.0),
-                          color: Colors.grey[100],
+                          color: AppColors.surface,
                         ),
                         child: _selectedImage != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(12.0),
-                                child: Image.file(
-                                  _selectedImage!,
+                                child: CrossPlatformImage(
+                                  imageSource: kIsWeb ? _webImage : File(_selectedImage!.path),
                                   fit: BoxFit.cover,
                                 ),
                               )
@@ -209,13 +221,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
                                         Icon(
                                           Icons.book,
                                           size: 40.0,
-                                          color: Colors.grey[400],
+                                          color: AppColors.textLight,
                                         ),
                                         const SizedBox(height: 8.0),
                                         Text(
                                           'Book Cover',
                                           style: TextStyle(
-                                            color: Colors.grey[600],
+                                            color: AppColors.textLight,
                                           ),
                                         ),
                                       ],
@@ -229,12 +241,12 @@ class _EditBookScreenState extends State<EditBookScreen> {
                                   Icon(
                                     Icons.add_photo_alternate,
                                     size: 40.0,
-                                    color: Colors.grey[400],
+                                    color: AppColors.textLight,
                                   ),
                                   const SizedBox(height: 8.0),
                                   Text(
                                     'Add Cover',
-                                    style: TextStyle(color: Colors.grey[600]),
+                                    style: TextStyle(color: AppColors.textLight),
                                   ),
                                 ],
                               ),
@@ -294,7 +306,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green[800],
+                          backgroundColor: AppColors.secondary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.0),
                           ),
