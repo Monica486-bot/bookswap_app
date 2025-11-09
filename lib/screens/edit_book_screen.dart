@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import 'dart:typed_data';
+
 import '../providers/book_provider.dart';
 import '../models/book_model.dart';
 import '../utils/constants.dart';
@@ -51,7 +51,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
         setState(() {
           _selectedImage = image;
         });
-        
+
         // For web, also load bytes for preview
         if (kIsWeb) {
           final bytes = await image.readAsBytes();
@@ -61,9 +61,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
     }
   }
 
@@ -88,12 +90,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
         _selectedImage,
       );
 
-      if (success && context.mounted) {
+      if (success) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Book updated successfully!')),
         );
         Navigator.pop(context);
-      } else if (context.mounted) {
+      } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update book: ${bookProvider.error}'),
@@ -101,13 +105,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     } finally {
-      if (context.mounted) {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -139,12 +143,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
               final success = await bookProvider.deleteBook(widget.book);
 
-              if (success && context.mounted) {
+              if (success) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Book deleted successfully!')),
                 );
                 Navigator.pop(context);
-              } else if (context.mounted) {
+              } else {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -203,53 +209,57 @@ class _EditBookScreenState extends State<EditBookScreen> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(12.0),
                                 child: CrossPlatformImage(
-                                  imageSource: kIsWeb ? _webImage : File(_selectedImage!.path),
+                                  imageSource: kIsWeb
+                                      ? _webImage
+                                      : File(_selectedImage!.path),
                                   fit: BoxFit.cover,
                                 ),
                               )
                             : widget.book.imageUrl.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12.0),
-                                child: Image.network(
-                                  widget.book.imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.book,
-                                          size: 40.0,
-                                          color: AppColors.textLight,
-                                        ),
-                                        const SizedBox(height: 8.0),
-                                        Text(
-                                          'Book Cover',
-                                          style: TextStyle(
-                                            color: AppColors.textLight,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_photo_alternate,
-                                    size: 40.0,
-                                    color: AppColors.textLight,
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    child: Image.network(
+                                      widget.book.imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.book,
+                                              size: 40.0,
+                                              color: AppColors.textLight,
+                                            ),
+                                            const SizedBox(height: 8.0),
+                                            Text(
+                                              'Book Cover',
+                                              style: TextStyle(
+                                                color: AppColors.textLight,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_photo_alternate,
+                                        size: 40.0,
+                                        color: AppColors.textLight,
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        'Add Cover',
+                                        style: TextStyle(
+                                            color: AppColors.textLight),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8.0),
-                                  Text(
-                                    'Add Cover',
-                                    style: TextStyle(color: AppColors.textLight),
-                                  ),
-                                ],
-                              ),
                       ),
                     ),
                     const SizedBox(height: 24.0),
@@ -282,13 +292,27 @@ class _EditBookScreenState extends State<EditBookScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Condition',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      dropdownColor: Colors.white,
+                      iconEnabledColor: Colors.black,
                       items: AppConstants.bookConditions.map((
                         String condition,
                       ) {
                         return DropdownMenuItem<String>(
                           value: condition,
-                          child: Text(condition),
+                          child: Container(
+                            color: Colors.white,
+                            child: Text(
+                              condition,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {

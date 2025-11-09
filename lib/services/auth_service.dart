@@ -115,4 +115,107 @@ class AuthService {
       await user.reload();
     }
   }
+
+  // Delete user account
+  Future<void> deleteAccount() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      try {
+        // Delete all user data from Firestore first
+        await _deleteAllUserData(user.uid);
+        
+        // Delete Firebase Auth account
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          throw Exception('Please sign out and sign back in, then try deleting your account again.');
+        }
+        throw Exception('Failed to delete account: ${e.message}');
+      } catch (e) {
+        throw Exception('Failed to delete account: $e');
+      }
+    }
+  }
+
+  // Delete user account with re-authentication
+  Future<void> deleteAccountWithReauth(String password) async {
+    User? user = _auth.currentUser;
+    if (user != null && user.email != null) {
+      try {
+        // Re-authenticate user
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+        await user.reauthenticateWithCredential(credential);
+        
+        // Delete all user data from Firestore
+        await _deleteAllUserData(user.uid);
+        
+        // Delete Firebase Auth account
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'wrong-password') {
+          throw Exception('Incorrect password. Please try again.');
+        }
+        throw Exception('Failed to delete account: ${e.message}');
+      } catch (e) {
+        throw Exception('Failed to delete account: $e');
+      }
+    }
+  }
+
+  // Delete all user-related data from Firestore
+  Future<void> _deleteAllUserData(String userId) async {
+    final batch = _firestore.batch();
+
+    // Delete user's books
+    final booksQuery = await _firestore
+        .collection(AppConstants.booksCollection)
+        .where('ownerId', isEqualTo: userId)
+        .get();
+    for (var doc in booksQuery.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Delete user's swaps (both sent and received)
+    final swapsFromQuery = await _firestore
+        .collection(AppConstants.swapsCollection)
+        .where('fromUserId', isEqualTo: userId)
+        .get();
+    for (var doc in swapsFromQuery.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final swapsToQuery = await _firestore
+        .collection(AppConstants.swapsCollection)
+        .where('toUserId', isEqualTo: userId)
+        .get();
+    for (var doc in swapsToQuery.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Delete user's chats
+    final chatsQuery = await _firestore
+        .collection(AppConstants.chatsCollection)
+        .where('participants', arrayContains: userId)
+        .get();
+    for (var doc in chatsQuery.docs) {
+      // Delete all messages in the chat
+      final messagesQuery = await doc.reference
+          .collection(AppConstants.messagesCollection)
+          .get();
+      for (var messageDoc in messagesQuery.docs) {
+        batch.delete(messageDoc.reference);
+      }
+      // Delete the chat document
+      batch.delete(doc.reference);
+    }
+
+    // Delete user document
+    batch.delete(_firestore.collection(AppConstants.usersCollection).doc(userId));
+
+    // Commit all deletions
+    await batch.commit();
+  }
 }

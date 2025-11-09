@@ -120,15 +120,24 @@ class UserAuthProvider with ChangeNotifier {
     await _authService.resendEmailVerification();
   }
 
-  // Check if user needs to verify email - with proper reload
+  // Check if user needs to verify email - with proper reload and notification
   Future<bool> checkEmailVerification() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Reload user to get latest email verification status
         await user.reload();
+        await user.getIdToken(true); // Force token refresh
         user = FirebaseAuth.instance.currentUser;
-        return user?.emailVerified ?? false;
+        
+        // If verification status changed, notify listeners
+        bool isVerified = user?.emailVerified ?? false;
+        if (isVerified && _currentUser == null) {
+          _currentUser = await _authService.getCurrentUserData();
+          notifyListeners(); // This triggers UI rebuild
+        }
+        
+        return isVerified;
       }
       return false;
     } catch (e) {
@@ -150,4 +159,44 @@ class UserAuthProvider with ChangeNotifier {
   }
 
   bool get isLoggedIn => _currentUser != null && _currentUser!.emailVerified;
+
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount();
+      _currentUser = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      // Error logged
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccountWithPassword(String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccountWithReauth(password);
+      _currentUser = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      // Error logged
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

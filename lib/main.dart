@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
 import 'providers/user_auth_provider.dart';
@@ -20,6 +22,13 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Disable all debug visual indicators
+  debugPaintSizeEnabled = false;
+  debugRepaintRainbowEnabled = false;
+
+  // Override RenderErrorBox to suppress overflow warnings
+  RenderErrorBox.backgroundColor = Colors.transparent;
+
   runApp(const BookSwapApp());
 }
 
@@ -37,6 +46,16 @@ class BookSwapApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'BookSwap',
+        builder: (context, widget) {
+          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+            return Container();
+          };
+          return MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.0)),
+            child: widget!,
+          );
+        },
         theme: ThemeData.light().copyWith(
           primaryColor: AppColors.primary,
           colorScheme: ColorScheme.light(
@@ -139,32 +158,52 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final authProvider =
+          Provider.of<UserAuthProvider>(context, listen: false);
+      authProvider.checkEmailVerification();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<UserAuthProvider>(context);
+    return Consumer<UserAuthProvider>(
+      builder: (context, authProvider, child) {
+        return StreamBuilder<User?>(
+          stream: authProvider.authStateChanges,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
 
-    return StreamBuilder<User?>(
-      stream: authProvider.authStateChanges,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashScreen();
-        }
+            if (!snapshot.hasData) {
+              return const LoginScreen();
+            }
 
-        if (!snapshot.hasData) {
-          // No user is signed in
-          return const LoginScreen();
-        }
+            final user = snapshot.data!;
 
-        final user = snapshot.data!;
-
-        if (!user.emailVerified) {
-          // User is signed in but email is not verified
-          return const VerifyEmailScreen();
-        } else {
-          // User is signed in AND email is verified
-          return const HomeScreen();
-        }
+            if (!user.emailVerified) {
+              return const VerifyEmailScreen();
+            } else {
+              return const HomeScreen();
+            }
+          },
+        );
       },
     );
   }

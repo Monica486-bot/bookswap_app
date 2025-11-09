@@ -40,7 +40,7 @@ class AppColors {
   static const int cardColor = 0xFFFFFFFF;       // White Card Color
   static const int textColor = 0xFF212121;       // Dark Gray Text
   static const int textLightColor = 0xFF757575;  // Medium Gray Text
-  static const int errorColor = 0xFF7986CB;      // Light Purple (Error)
+  static const int errorColor = 0xFFE53E3E;      // Red (Error)
   static const int successColor = 0xFF9FA8DA;    // Lighter Purple (Success)
   static const int warningColor = 0xFFB39DDB;    // Medium Purple (Warning)
 

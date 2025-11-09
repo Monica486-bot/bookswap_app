@@ -25,18 +25,16 @@ class MyListingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.card,
-        title: Text('Delete Book', style: TextStyle(color: AppColors.text)),
-        content: Text(
-          'Are you sure you want to delete "${book.title}"? This action cannot be undone.',
-          style: TextStyle(color: AppColors.textLight),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Book'),
+        content: Text('Are you sure you want to delete "${book.title}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: AppColors.textLight)),
+            child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(context);
               
@@ -50,12 +48,12 @@ class MyListingsScreen extends StatelessWidget {
                         ? 'Book deleted successfully!' 
                         : 'Failed to delete book: ${bookProvider.error}',
                     ),
-                    backgroundColor: success ? AppColors.success : Colors.red,
+                    backgroundColor: success ? Colors.green : Colors.red,
                   ),
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -68,6 +66,7 @@ class MyListingsScreen extends StatelessWidget {
     final bookProvider = Provider.of<BookProvider>(context);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Books'),
         backgroundColor: AppColors.primary,
@@ -76,24 +75,12 @@ class MyListingsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddBookScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddBookScreen()),
+            ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddBookScreen()),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: StreamBuilder(
         stream: bookProvider.userBooksStream(
@@ -101,14 +88,28 @@ class MyListingsScreen extends StatelessWidget {
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: Text('Error: ${snapshot.error}'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Something went wrong',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${snapshot.error}',
+                    style: TextStyle(color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             );
           }
 
@@ -119,36 +120,116 @@ class MyListingsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.book,
-                    size: 80.0,
-                    color: Colors.grey[400],
+                  Icon(Icons.library_add_outlined, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No books listed yet',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
                   ),
-                  const SizedBox(height: 16.0),
-                  const Text(
-                    'No books listed yet.\nAdd your first book to start swapping!',
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add your first book to start swapping!',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddBookScreen()),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Your First Book'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
                 ],
               ),
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: books.length,
-            itemBuilder: (context, index) {
-              final book = books[index];
-              return BookCard(
-                book: book,
-                showEditDelete: true,
-                onEdit: () => _editBook(context, book),
-                onDelete: () => _deleteBook(context, book),
-              );
-            },
+          return Column(
+            children: [
+              // Stats Header
+              if (books.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.library_books, color: AppColors.secondary),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${books.length} Book${books.length == 1 ? '' : 's'}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              books.length == 1 ? 'Keep adding more!' : 'Great collection!',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
+              // Books List
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: books.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final book = books[index];
+                    return BookCard(
+                      book: book,
+                      showEditDelete: true,
+                      onEdit: () => _editBook(context, book),
+                      onDelete: () => _deleteBook(context, book),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddBookScreen()),
+        ),
+        backgroundColor: AppColors.secondary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

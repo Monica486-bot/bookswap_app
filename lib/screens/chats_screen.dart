@@ -15,18 +15,32 @@ class ChatsScreen extends StatelessWidget {
     final currentUserId = authProvider.currentUser?.uid;
 
     if (currentUserId == null) {
-      return const Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: SizedBox(),
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          title: const Text('Chats'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
         ),
         body: Center(
-          child: Text('Please log in to view chats'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.login, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Please log in to view chats',
+                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Chats'),
         backgroundColor: AppColors.primary,
@@ -42,7 +56,23 @@ class ChatsScreen extends StatelessWidget {
 
           if (snapshot.hasError) {
             return Center(
-              child: Text('Error loading chats: ${snapshot.error}'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Something went wrong',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${snapshot.error}',
+                    style: TextStyle(color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             );
           }
 
@@ -53,56 +83,36 @@ class ChatsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(
-                      Icons.chat_bubble_outline,
-                      size: 80.0,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  const SizedBox(height: 24.0),
+                  Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 24),
                   Text(
                     'No chats yet',
                     style: TextStyle(
-                      fontSize: 20.0,
-                      color: AppColors.text,
+                      fontSize: 24,
                       fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
                     ),
                   ),
-                  const SizedBox(height: 8.0),
+                  const SizedBox(height: 8),
                   Text(
-                    'Start a swap to begin chatting',
-                    style: TextStyle(
-                      color: AppColors.textLight,
-                      fontSize: 16,
-                    ),
+                    'Start a swap to begin chatting!',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                   ),
                 ],
               ),
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
             itemCount: chats.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final chat = chats[index];
-
               return ChatListItem(
                 chat: chat,
                 currentUserId: currentUserId,
                 onTap: () {
-                  final participants = List<String>.from(chat['participants']);
-                  final otherUserId = participants.firstWhere(
-                    (id) => id != currentUserId,
-                    orElse: () => '',
-                  );
-                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -138,70 +148,76 @@ class ChatListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16.0),
+        contentPadding: const EdgeInsets.all(16),
         leading: Container(
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.secondary, AppColors.accent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: AppColors.secondary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(25),
           ),
-          child: const Icon(Icons.chat_bubble, color: Colors.white),
+          child: Icon(Icons.chat_bubble, color: AppColors.secondary),
         ),
         title: Text(
-          'Swap Chat #${chat['swapId'].substring(0, 8)}',
+          'Swap Chat',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: AppColors.text,
             fontSize: 16,
           ),
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(
-            chat['lastMessage'],
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.textLight,
-              fontSize: 14,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              chat['lastMessage'] ?? 'No messages yet',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'ID: ${chat['swapId'].substring(0, 8)}...',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+            Text(
+              _formatTime(chat['lastMessageTime']),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
               ),
-              child: Text(
-                _formatTime(chat['lastMessageTime']),
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            ),
+            const SizedBox(height: 4),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey[400],
+              size: 16,
             ),
           ],
         ),
@@ -215,13 +231,13 @@ class ChatListItem extends StatelessWidget {
     final difference = now.difference(time);
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}d';
+      return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
+      return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
+      return '${difference.inMinutes}m ago';
     } else {
-      return 'Now';
+      return 'Just now';
     }
   }
 }

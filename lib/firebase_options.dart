@@ -83,4 +83,5 @@ class DefaultFirebaseOptions {
     authDomain: 'bookswap-app-faa15.firebaseapp.com',
     storageBucket: 'bookswap-app-faa15.firebasestorage.app',
   );
+
 }

@@ -26,11 +26,11 @@ class MyOffersScreen extends StatelessWidget {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          bottom: TabBar(
+          bottom: const TabBar(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white,
-            tabs: const [
+            tabs: [
               Tab(text: 'Sent'),
               Tab(text: 'Received'),
             ],

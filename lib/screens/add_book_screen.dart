@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import 'dart:typed_data';
+
 import '../providers/user_auth_provider.dart';
 import '../providers/book_provider.dart';
 import '../models/book_model.dart';
@@ -42,7 +42,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
         setState(() {
           _selectedImage = image;
         });
-        
+
         // For web, also load bytes for preview
         if (kIsWeb) {
           final bytes = await image.readAsBytes();
@@ -85,7 +85,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
         condition: _selectedCondition,
         imageUrl: '',
         ownerId: authProvider.currentUser!.uid,
-        ownerName: authProvider.currentUser!.displayName ?? 'Unknown User',
+        ownerName: authProvider.currentUser!.displayName.isNotEmpty
+            ? authProvider.currentUser!.displayName
+            : 'Unknown User',
         status: AppConstants.bookAvailable,
         createdAt: DateTime.now(),
       );
@@ -147,7 +149,8 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12.0),
                           child: CrossPlatformImage(
-                            imageSource: kIsWeb ? _webImage : File(_selectedImage!.path),
+                            imageSource:
+                                kIsWeb ? _webImage : File(_selectedImage!.path),
                             fit: BoxFit.cover,
                           ),
                         )
@@ -201,11 +204,25 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   labelText: 'Condition',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.flag),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                dropdownColor: Colors.white,
+                iconEnabledColor: Colors.black,
                 items: AppConstants.bookConditions.map((String condition) {
                   return DropdownMenuItem<String>(
                     value: condition,
-                    child: Text(condition),
+                    child: Container(
+                      color: Colors.white,
+                      child: Text(
+                        condition,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {

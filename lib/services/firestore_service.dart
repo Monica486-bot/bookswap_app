@@ -227,4 +227,20 @@ class FirestoreService {
 
     return chatDoc.id;
   }
+
+  Future<void> createChatForAcceptedSwap(String swapId) async {
+    // Get swap details
+    DocumentSnapshot swapDoc = await _firestore
+        .collection(AppConstants.swapsCollection)
+        .doc(swapId)
+        .get();
+    
+    if (swapDoc.exists) {
+      final swapData = swapDoc.data() as Map<String, dynamic>;
+      final participants = <String>[swapData['fromUserId'], swapData['toUserId']];
+      
+      // Create chat if it doesn't exist
+      await getOrCreateChat(participants, swapId);
+    }
+  }
 }

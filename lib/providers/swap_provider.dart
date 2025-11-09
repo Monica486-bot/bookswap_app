@@ -50,6 +50,10 @@ class SwapProvider with ChangeNotifier {
 
     try {
       await _firestoreService.updateSwapStatus(swapId, 'Accepted');
+      
+      // Create chat automatically when swap is accepted
+      await _firestoreService.createChatForAcceptedSwap(swapId);
+      
       _isLoading = false;
       notifyListeners();
       return true;
