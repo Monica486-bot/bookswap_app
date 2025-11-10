@@ -75,10 +75,12 @@ class MyListingsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AddBookScreen()),
-            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddBookScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -138,10 +140,12 @@ class MyListingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AddBookScreen()),
-                    ),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddBookScreen()),
+                      );
+                    },
                     icon: const Icon(Icons.add),
                     label: const Text('Add Your First Book'),
                     style: ElevatedButton.styleFrom(
@@ -224,10 +228,16 @@ class MyListingsScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddBookScreen()),
-        ),
+        heroTag: "add_book_fab",
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddBookScreen(),
+              fullscreenDialog: true,
+            ),
+          );
+        },
         backgroundColor: AppColors.secondary,
         child: const Icon(Icons.add, color: Colors.white),
       ),

@@ -45,7 +45,7 @@ class CustomBottomNavBar extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books_outlined),
             activeIcon: Icon(Icons.library_books),
-            label: 'My Books',
+            label: 'My Listings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.swap_horiz_outlined),

@@ -243,4 +243,15 @@ class FirestoreService {
       await getOrCreateChat(participants, swapId);
     }
   }
+
+  // Update user's email verification status in Firestore
+  Future<void> updateEmailVerificationStatus(String userId, bool isVerified) async {
+    await _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(userId)
+        .update({
+      'emailVerified': isVerified,
+      'emailVerifiedAt': isVerified ? DateTime.now().millisecondsSinceEpoch : null,
+    });
+  }
 }

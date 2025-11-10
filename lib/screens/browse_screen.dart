@@ -7,6 +7,7 @@ import '../widgets/book_card.dart';
 import '../models/swap_model.dart';
 import '../services/firestore_service.dart';
 import '../utils/constants.dart';
+import 'add_book_screen.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -158,6 +159,20 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: "browse_add_book_fab",
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddBookScreen(),
+              fullscreenDialog: true,
+            ),
+          );
+        },
+        backgroundColor: AppColors.secondary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

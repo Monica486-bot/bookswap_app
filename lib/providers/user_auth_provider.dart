@@ -1,10 +1,12 @@
 ﻿import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 
 class UserAuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
   UserModel? _currentUser;
   bool _isLoading = false;
   String? _error;
@@ -134,6 +136,16 @@ class UserAuthProvider with ChangeNotifier {
         bool isVerified = user?.emailVerified ?? false;
         if (isVerified && _currentUser == null) {
           _currentUser = await _authService.getCurrentUserData();
+          
+          // Update Firestore document to reflect verification status
+          try {
+            await _firestoreService.updateEmailVerificationStatus(user!.uid, true);
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error updating Firestore verification status: $e');
+            }
+          }
+          
           notifyListeners(); // This triggers UI rebuild
         }
         

@@ -61,14 +61,27 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> with WidgetsBindi
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Aggressive verification checking
-        for (int i = 0; i < 3; i++) {
+        // Super aggressive verification checking with multiple methods
+        for (int i = 0; i < 5; i++) {
+          // Method 1: Standard reload
           await user.reload();
+          
+          // Method 2: Force token refresh
           await user.getIdToken(true);
-          await Future.delayed(const Duration(milliseconds: 200));
+          
+          // Method 3: Re-authenticate to force server sync
+          try {
+            await FirebaseAuth.instance.currentUser?.getIdTokenResult(true);
+          } catch (e) {
+            // Ignore errors, continue checking
+          }
+          
+          // Small delay between checks
+          await Future.delayed(const Duration(milliseconds: 300));
           
           if (!mounted) return;
           
+          // Get fresh user instance
           final updatedUser = FirebaseAuth.instance.currentUser;
           if (updatedUser != null && updatedUser.emailVerified) {
             if (mounted) {
@@ -77,6 +90,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> with WidgetsBindi
                 _isChecking = false;
               });
             }
+            
+            // Force update auth provider
+            final authProvider = Provider.of<UserAuthProvider>(context, listen: false);
+            await authProvider.refreshAuthState();
             
             // Navigate immediately
             Future.delayed(const Duration(milliseconds: 500), () {
